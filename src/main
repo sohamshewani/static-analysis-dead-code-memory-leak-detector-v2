@@ -1,0 +1,64 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "include/config.h"
+#include "include/parser.h"
+#include "include/cfg.h"
+#include "include/analyzer.h"
+#include "include/reporter.h"
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s <input_file>", argv[0]);
+        return EXIT_FAILURE;
+    }
+
+    const char *input_file = argv[1];
+    FILE *input = fopen(input_file, "r");
+    if (input == NULL) {
+        perror("fopen");
+        return EXIT_FAILURE;
+    }
+
+    Parser parser;
+    Cfg cfg;
+    Analyzer analyzer;
+    Reporter reporter;
+
+    if (parser_init(&parser) != 0) {
+        fprintf(stderr, "Failed to initialize parser.");
+        return EXIT_FAILURE;
+    }
+
+    if (cfg_build(&cfg, &parser) != 0) {
+        fprintf(stderr, "Failed to build configuration.");
+        return EXIT_FAILURE;
+    }
+
+    if (analyzer_init(&analyzer, &cfg) != 0) {
+        fprintf(stderr, "Failed to initialize analyzer.");
+        return EXIT_FAILURE;
+    }
+
+    if (reporter_init(&reporter, &analyzer) != 0) {
+        fprintf(stderr, "Failed to initialize reporter.");
+        return EXIT_FAILURE;
+    }
+
+    if (parser_parse(&parser, input) != 0) {
+        fprintf(stderr, "Failed to parse input.");
+        return EXIT_FAILURE;
+    }
+
+    if (analyzer_run(&analyzer) != 0) {
+        fprintf(stderr, "Analyzer run failed.");
+        return EXIT_FAILURE;
+    }
+
+    if (reporter_report(&reporter) != 0) {
+        fprintf(stderr, "Failed to report.");
+        return EXIT_FAILURE;
+    }
+
+    fclose(input);
+    return EXIT_SUCCESS;
+}

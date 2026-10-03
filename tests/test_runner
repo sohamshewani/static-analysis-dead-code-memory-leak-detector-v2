@@ -1,0 +1,14 @@
+#!/bin/bash
+# This script runs the static analysis tool and checks for memory leaks and dead code
+
+cd $(dirname $0)
+
+make clean && make
+
+./static-analysis-dead-code-memory-leak-detector --check-memory-leaks --check-dead-code
+
+if [ $? -eq 0 ]; then
+    echo "Test passed"
+else
+    echo "Test failed"
+fi
